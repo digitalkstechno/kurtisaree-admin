@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Filter, Loader2, LayoutDashboard, Package, LogOut } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Loader2, LayoutDashboard, Package, LogOut, Sparkles, ArrowRight, ExternalLink } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getImageUrl } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 export default function ProductListPage() {
@@ -25,17 +25,17 @@ export default function ProductListPage() {
       const response = await api.get('/products?limit=100');
       setProducts(response.data.products);
     } catch (error) {
-      toast.error('Failed to fetch products');
+      toast.error('Failed to fetch catalog');
     } finally {
       setLoading(false);
     }
   };
 
   const deleteProduct = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm('Are you sure you want to archive this masterpiece? This action cannot be undone.')) {
       try {
         await api.delete(`/products/${id}`);
-        toast.success('Product deleted successfully');
+        toast.success('Product archived successfully');
         fetchProducts();
       } catch (error) {
         toast.error('Failed to delete product');
@@ -46,7 +46,7 @@ export default function ProductListPage() {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
-    toast.success('Logged out successfully');
+    toast.success('Logout successful');
     router.push('/login');
   };
 
@@ -57,133 +57,179 @@ export default function ProductListPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader2 className="h-10 w-10 animate-spin text-pink-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar (Same as Dashboard) */}
-      <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-pink-600 flex items-center gap-2">
-            <Package size={28} />
-            Admin
-          </h2>
+    <div className="min-h-screen bg-gray-50/50 flex selection:bg-pink-100 selection:text-pink-600">
+      {/* Sidebar - Consistent with Dashboard */}
+      <aside className="w-72 bg-gray-900 text-white hidden lg:flex flex-col sticky top-0 h-screen shadow-2xl z-20">
+        <div className="p-8">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-pink-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-pink-900/20 transition-transform duration-500 group-hover:rotate-[360deg]">
+              <Sparkles size={20} />
+            </div>
+            <span className="text-xl font-serif tracking-tighter text-white">
+              KURTI<span className="text-pink-500 italic">SAREE</span>
+            </span>
+          </Link>
         </div>
-        <nav className="flex-1 px-4 space-y-2 mt-4">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold transition-colors">
-            <LayoutDashboard size={20} /> Dashboard
-          </Link>
-          <Link href="/products" className="flex items-center gap-3 px-4 py-3 bg-pink-50 text-pink-600 rounded-xl font-bold">
-            <Package size={20} /> Products
-          </Link>
-          <Link href="/add-product" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold transition-colors">
-            <Plus size={20} /> Add Product
-          </Link>
-        </nav>
-        <div className="p-4 border-t border-gray-100">
-          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-colors">
-            <LogOut size={20} /> Logout
+
+        <div className="px-4 mb-4">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 px-4 mb-4">Management</p>
+          <nav className="space-y-1">
+            <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3.5 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl font-semibold transition-all group">
+              <LayoutDashboard size={20} className="group-hover:text-pink-500 transition-colors" /> Overview
+            </Link>
+            <Link href="/products" className="flex items-center gap-3 px-4 py-3.5 bg-white/10 text-white rounded-xl font-bold transition-all border border-white/5">
+              <Package size={20} className="text-pink-500" /> Saree & Kurti Catalog
+            </Link>
+            <Link href="/add-product" className="flex items-center gap-3 px-4 py-3.5 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl font-semibold transition-all group">
+              <Plus size={20} className="group-hover:text-pink-500 transition-colors" /> Add Saree/Kurti
+            </Link>
+          </nav>
+        </div>
+
+        <div className="mt-auto p-4 border-t border-white/5">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-3.5 text-red-400 hover:bg-red-500/10 rounded-xl font-bold transition-all group"
+          >
+            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" /> Logout Session
           </button>
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-2xl font-bold text-gray-900">Product List</h1>
-          <Link href="/add-product" className="bg-pink-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-pink-200 hover:bg-pink-700 transition-colors">
-            <Plus size={18} /> New Product
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 px-8 py-6 flex items-center justify-between sticky top-0 z-10">
+          <div>
+            <h1 className="text-2xl font-serif text-gray-900 tracking-tight">Saree & Kurti Catalog</h1>
+            <p className="text-sm text-gray-400 font-medium uppercase tracking-widest mt-1">Manage Catalog Details</p>
+          </div>
+          <Link href="/add-product" className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-gray-200 hover:bg-black transition-all active:scale-[0.98]">
+            <Plus size={16} /> Add Saree/Kurti
           </Link>
         </header>
 
-        <div className="p-8 max-w-7xl mx-auto">
-          {/* Search and Filters */}
-          <div className="bg-white p-4 rounded-xl border border-gray-200 mb-8 flex flex-col md:flex-row gap-4 shadow-sm">
-            <div className="relative flex-1">
-              <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8">
+          {/* Filters Bar */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="relative flex-1 group">
+              <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-pink-600 transition-colors duration-300" />
               <input
                 type="text"
-                placeholder="Search by name or category..."
+                placeholder="Search by name, fabric, or collection..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all"
+                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/10 focus:border-pink-500 transition-all duration-300 text-base font-medium shadow-sm"
               />
             </div>
-            <button className="flex items-center justify-center gap-2 px-6 py-2 border border-gray-200 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
-              <Filter size={18} />
-              Filter
-            </button>
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 uppercase">Product</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 uppercase">Category</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 uppercase">Price</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 uppercase">Stock</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product: any) => (
-                  <tr key={product._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-16 rounded overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-100">
-                          <Image src={product.images[0] || '/placeholder.jpg'} alt={product.name} fill className="object-cover" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 line-clamp-1">{product.name}</p>
-                          <p className="text-xs text-gray-500 font-medium">Slug: {product.slug}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                        product.category === 'saree' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-gray-900">{formatPrice(product.discountPrice || product.price)}</p>
-                      {product.discountPrice && (
-                        <p className="text-xs text-gray-400 line-through">{formatPrice(product.price)}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-bold ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {product.stock} units
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <Link href={`/edit-product/${product._id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                          <Edit size={18} />
-                        </Link>
-                        <button 
-                          onClick={() => deleteProduct(product._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
+          {/* Catalog Table */}
+          <div className="bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-700">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50 border-b border-gray-100">
+                    <th className="px-8 py-6 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Saree / Kurti</th>
+                    <th className="px-8 py-6 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Collection</th>
+                    <th className="px-8 py-6 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Price Details</th>
+                    <th className="px-8 py-6 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Availability</th>
+                    <th className="px-8 py-6 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredProducts.map((product: any) => (
+                    <tr key={product._id} className="group hover:bg-gray-50/50 transition-colors duration-300">
+                      <td className="px-8 py-8">
+                        <div className="flex items-center gap-5">
+                          <div className="relative w-16 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gray-50 border border-gray-100 group-hover:scale-105 transition-transform duration-500">
+                            <Image src={getImageUrl(product.images[0])} alt={product.name} fill className="object-cover" unoptimized={true} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <p className="text-lg font-serif text-gray-900 group-hover:text-pink-600 transition-colors duration-300">{product.name}</p>
+                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest flex items-center gap-2">
+  <span>{product.fabric}</span>
+  <span className="w-1 h-1 bg-gray-200 rounded-full inline-block"></span>
+  <span>{product.color}</span>
+</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-8">
+                        <span className={`inline-flex px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest ${
+                          product.category === 'saree' ? 'bg-pink-50 text-pink-600' : 'bg-blue-50 text-blue-600'
+                        }`}>
+                          {product.category}
+                        </span>
+                      </td>
+                      <td className="px-8 py-8">
+                        <div className="space-y-1">
+                          <p className="text-base font-bold text-gray-900">{formatPrice(product.discountPrice || product.price)}</p>
+                          {product.discountPrice && (
+                            <p className="text-xs text-gray-300 line-through font-bold">{formatPrice(product.price)}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-8 py-8">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <span className={`text-xs font-bold uppercase tracking-widest ${product.stock > 0 ? 'text-gray-600' : 'text-red-500'}`}>
+                            {product.stock} Pieces
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">
+                          <Link 
+                            href={`/edit-product/${product._id}`} 
+                            className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                            title="Edit Details"
+                          >
+                            <Edit size={18} />
+                          </Link>
+                          <button 
+                            onClick={() => deleteProduct(product._id)}
+                            className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            title="Archive Piece"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                          <a 
+                            href={`${process.env.NEXT_PUBLIC_SHOP_URL || 'http://localhost:3000'}/product/${product.slug}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-2.5 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-all"
+                            title="View in Catalog"
+                          >
+                            <ExternalLink size={18} />
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             
             {filteredProducts.length === 0 && (
-              <div className="p-12 text-center text-gray-500">
-                <p className="text-lg font-bold">No products found</p>
-                <p>Try searching with a different term or add a new product.</p>
+              <div className="p-20 text-center space-y-4 bg-gray-50/30">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 mx-auto mb-4">
+                  <Package size={32} />
+                </div>
+                <p className="text-xl font-serif text-gray-900">No masterpieces found</p>
+                <p className="text-sm text-gray-400 font-light max-w-xs mx-auto">Try refining your search identifier or add a new creation to the catalog.</p>
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="text-[10px] font-bold uppercase tracking-widest text-pink-600 hover:text-pink-700 transition-colors"
+                >
+                  Clear All Filters
+                </button>
               </div>
             )}
           </div>
