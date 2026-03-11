@@ -77,12 +77,7 @@ export default function EditProductPage() {
     setUploading(true);
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
-      const response = await api.post('/upload', formData, config);
+      const response = await api.post('/upload', formData);
       setProduct((prev) => ({ ...prev, images: [...prev.images, response.data.image] }));
       toast.success('Image Uploaded Successfully');
     } catch (error: any) {
