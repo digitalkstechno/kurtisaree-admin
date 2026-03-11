@@ -68,7 +68,7 @@ export default function ProductListPage() {
       {/* Sidebar - Consistent with Dashboard */}
       <aside className="w-72 bg-gray-900 text-white hidden lg:flex flex-col sticky top-0 h-screen shadow-2xl z-20">
         <div className="p-8">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
+          <Link href="/products" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-pink-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-pink-900/20 transition-transform duration-500 group-hover:rotate-[360deg]">
               <Sparkles size={20} />
             </div>
@@ -77,13 +77,10 @@ export default function ProductListPage() {
             </span>
           </Link>
         </div>
-
+ 
         <div className="px-4 mb-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 px-4 mb-4">Management</p>
           <nav className="space-y-1">
-            <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3.5 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl font-semibold transition-all group">
-              <LayoutDashboard size={20} className="group-hover:text-pink-500 transition-colors" /> Overview
-            </Link>
             <Link href="/products" className="flex items-center gap-3 px-4 py-3.5 bg-white/10 text-white rounded-xl font-bold transition-all border border-white/5">
               <Package size={20} className="text-pink-500" /> Saree & Kurti Catalog
             </Link>
