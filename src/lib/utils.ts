@@ -28,6 +28,6 @@ export const getImageUrl = (path: any) => {
 
   // Ensure path starts with /
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-
+  console.log('apibase', apiBase, 'cleanpath', cleanPath)
   return `${apiBase}${cleanPath}`;
 };
